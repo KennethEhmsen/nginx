@@ -140,6 +140,8 @@ function bots() {
     # Run installer and configuration
     install-ngxblocker -x
     setup-ngxblocker -x -w ${NGINX_DOCROOT}
+    echo "OK: Clean up variables..."
+    sed -i -e 's|^variables_hash_max_|#variables_hash_max_|g' /etc/nginx/conf.d/botblocker-nginx-settings.conf
 }
 
 #---------------------------------------------------------------------
@@ -152,15 +154,21 @@ function openssl() {
   DHPARAM_BITS=${1:-2048}
 
   # If a dhparam file is not available, use the pre-generated one and generate a new one in the background.
-  PREGEN_DHPARAM_FILE="${CERTS_PREFIX}/dhparam.pem.default"
-  DHPARAM_FILE="${CERTS_PREFIX}/dhparam.pem"
-  GEN_LOCKFILE="/tmp/dhparam_generating.lock"
+  PREGEN_DHPARAM_FILE=${CERTS_PREFIX}/dhparam.pem.default
+  DHPARAM_FILE=${CERTS_PREFIX}/dhparam.pem
+  GEN_LOCKFILE=/tmp/dhparam_generating.lock
+
+  if [[ ! -f ${PREGEN_DHPARAM_FILE} ]]; then
+     echo "OK: NO PREGEN_DHPARAM_FILE is present. Generate ${PREGEN_DHPARAM_FILE}..."
+     nice -n +5 openssl dhparam -out ${DHPARAM_FILE} 2048 2>&1
+  fi
 
   if [[ ! -f ${DHPARAM_FILE} ]]; then
      # Put the default dhparam file in place so we can start immediately
+     echo "OK: NO DHPARAM_FILE present. Copy ${PREGEN_DHPARAM_FILE} to ${DHPARAM_FILE}..."
      cp ${PREGEN_DHPARAM_FILE} ${DHPARAM_FILE}
      touch ${GEN_LOCKFILE}
-   else
+
      # The hash of the pregenerated dhparam file is used to check if the pregen dhparam is already in use
      PREGEN_HASH=$(md5sum ${PREGEN_DHPARAM_FILE} | cut -d" " -f1)
      CURRENT_HASH=$(md5sum ${DHPARAM_FILE} | cut -d" " -f1)
@@ -202,9 +210,9 @@ function cdn () {
 function run() {
    environment
    openssl
-   if [[ ! -z ${NGINX_CDN_HOST} ]]; then cdn; fi
+   if [[ -z ${NGINX_CDN_HOST} ]]; then echo "CDN was not set"; else cdn; fi
    config
-   if [[ ${NGINX_CONFIG} != "basic" ]]; then bots; fi
+   if [[ ${NGINX_BAD_BOTS} = "true" ]]; then bots; else echo "BOTS was not set"; fi
    if [[ ${NGINX_DEV_INSTALL} = "true" ]]; then dev; fi
    #permissions
    if [[ ${NGINX_CONFIG} != "basic" ]]; then monit; fi

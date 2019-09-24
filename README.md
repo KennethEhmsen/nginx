@@ -24,7 +24,7 @@ The image includes configuration enhancements for;
 * Rate limited connections to slow down attackers
 * CDN support
 * Cache purge
-* Pair with [high performance PHP-FPM container](https://hub.docker.com/r/openbridge/ob_php-fpm/)
+* Pair with [high performance PHP-FPM container](https://hub.docker.com/r/openbridge/ob_php-fpm/) for [blazing fast Wordpress installs](https://github.com/openbridge/wordpress)
 
 There are many, many other benefits to this system. Give it a try!
 
@@ -38,7 +38,7 @@ The first step is to build or pull the image:
 ```docker
 docker build --build-arg "NGINX_VERSION=1.15.5" -t openbridge/nginx .
 ```
-Replace `NGINX_VERSION=1.15.5` with your preferred version. You can also simply `pull` the images. See below.
+Replace `NGINX_VERSION=1.17.0` with your preferred version. You can also simply `pull` the images. See below.
 ### Pull
 ```docker
 docker pull openbridge/nginx:latest
@@ -46,7 +46,7 @@ docker pull openbridge/nginx:latest
 
 You can also use a different version of NGINX simply by pulling a build with the NGINX version you want. For example;
 ```docker
-docker pull openbridge/nginx:1.15.5
+docker pull openbridge/nginx:latest
 docker pull openbridge/nginx:1.15.4
 docker pull openbridge/nginx:1.15.3
 ```
@@ -405,6 +405,16 @@ We have standardized on the user, group and UID/GID to work seamlessly with othe
 # Bots & Spam Protection
 We have include "The Ultimate Nginx Bad Bot, User-Agent, Spam Referrer Blocker, Adware, Malware and Ransomware Blocker, Clickjacking Blocker, Click Re-Directing Blocker, SEO Companies and Bad IP Blocker with Anti DDOS System, Nginx Rate Limiting and Wordpress Theme Detector Blocking"
 
+## Activating Bot Protection
+If you want to activate bot protection, you need to set an environment variable called `NGINX_BAD_BOTS` to `true`.
+```bash
+NGINX_BAD_BOTS=true
+```
+If you do not set this variable, then do not include it or set the value to `false`
+```bash
+NGINX_BAD_BOTS=false
+```
+
 ## What Are Bad Bots?
 Why block bad bots? They can cause problems for your application, performance and allow pollute your performance data! What are some examples of bad bots and spam? Bots attempt to make themselves look like other software or web sites by disguising their user agent. Their user agent names may look harmless, perfectly legitimate even.
 
@@ -543,6 +553,13 @@ This assumes you have a CDN distribution setup and the assets published there. T
 # Benchmarks
 Benchmarks were undertaken to spot check performance and uncover any issues. These tests were done on AWS Lightsail on a 512BM instance type (512 MB RAM, 1 vCPU, 20 GB SSD).
 
+## `PageSpeed` Benchmark
+This test was run using PageSpeed. This was running a full Wordpress stack and the default WP theme as detailed here: https://github.com/openbridge/wordpress
+
+The install scored a **100**, including exceptional performance on all the infrastructure benchmarks
+
+<img src="images/developers.google.com-test.png" alt="Pagespeed-wordpress" style="width: 525px;"/>
+
 ## `ab` Benchmark
 This the Apache ab test command:
 `ab -k -n 50000 -c 10 -t 10 http://xxxxxx/testing/index.html`
@@ -625,8 +642,8 @@ Here are the latest releases:
 
 | Docker Tag | Git Hub Release | Nginx Version | Alpine Version |
 |-----|-------|-----|--------|
-| latest | master  | latest | 3.9 |
-| 1.16.0 | master  | 1.16.0 | 3.9 |
+| latest | master  | latest | 3.10 |
+| 1.17.2 | master  | 1.17.2 | 3.10 |
 
 
 To see the available versions visit: https://hub.docker.com/r/openbridge/nginx/tags/
