@@ -17,9 +17,6 @@ check directory cache-owner with path {{CACHE_PREFIX}}
       every 3 cycles
       if failed uid www-data then exec "/usr/bin/env bash -c 'find {{CACHE_PREFIX}} -type d -exec chown www-data:www-data {} \; && find {{CACHE_PREFIX}} -type f -exec chown www-data:www-data {} \;'"
 
-check file letsencrypt_certificate with path /etc/letsencrypt/live/{{NGINX_SERVER_NAME}}/fullchain.pem
-      if changed checksum then exec "/usr/bin/env bash -c '/usr/sbin/nginx -s reload'"
-
 check host {{NGINX_SERVER_NAME}} with address {{NGINX_SERVER_NAME}}
       if failed host {{NGINX_SERVER_NAME}} port 80 protocol http
         and request "/health-check"
@@ -38,6 +35,6 @@ check program cache-size with path /usr/bin/env bash -c "check_folder {{CACHE_PR
       every 20 cycles
       if status != 0 then exec "/usr/bin/env bash -c 'rm -Rf /var/cache/*'"
 
-#check program prerendering-service with path /usr/bin/env bash -c "check_host"
-#      every 20 cycles
-#      if status != 0 then alert
+check program prerendering-service with path /usr/bin/env bash -c "check_host"
+      every 20 cycles
+      if status != 0 then alert
